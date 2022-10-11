@@ -1,0 +1,2 @@
+set visualbell
+syntax on
