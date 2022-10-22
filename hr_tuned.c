@@ -56,7 +56,7 @@ unsigned int timeOutStart, dataRequestStart, m;
 volatile int Signal;
 volatile unsigned int sampleCounter;
 volatile int threshSetting,lastBeatTime,fadeLevel;
-volatile int thresh = 550;
+volatile int thresh = 110; // 550
 volatile int P = 512;                               // set P default
 volatile int T = 512;                               // set T default
 volatile int firstBeat = 1;                      // set these to avoid noise
@@ -223,8 +223,8 @@ void initPulseSensorVariables(void){
     lastBeatTime = 0;
     P = 512;                    // peak at 1/2 the input range of 0..1023
     T = 512;                    // trough at 1/2 the input range.
-    threshSetting = 550;        // used to seed and reset the thresh variable
-    thresh = 550;     // threshold a little above the trough
+    threshSetting = 110; // 550        // used to seed and reset the thresh variable
+    thresh = 1; // 550     // threshold a little above the trough
     amp = 100;                  // beat amplitude 1/10 of input range.
     firstBeat = 1;           // looking for the first beat
     secondBeat = 0;         // not yet looking for the second beat in a row
@@ -270,7 +270,12 @@ void getPulse(int sig_num){
   //  NOW IT'S TIME TO LOOK FOR THE HEART BEAT
   // signal surges up in value every time there is a pulse
   if (N > 250) {                             // avoid high frequency noise
+    printf("N > 250\nPulse: ");
+    printf("%d", Pulse);
+    if (Signal > thresh) printf("\nSignal > thresh\n");
+    if (N > ((IBI / 5) * 3)) printf("ibi thing is true\n");
     if ( (Signal > thresh) && (Pulse == 0) && (N > ((IBI / 5) * 3)) ) {
+      printf("this huge condition works!!\n");
       Pulse = 1;                             // set the Pulse flag when we think there is a pulse
       IBI = sampleCounter - lastBeatTime;    // measure time between beats in mS
       lastBeatTime = sampleCounter;          // keep track of time for next pulse
@@ -301,6 +306,8 @@ void getPulse(int sig_num){
       rate[9] = IBI;                          // add the latest IBI to the rate array
       runningTotal += rate[9];                // add the latest IBI to runningTotal
       runningTotal /= 10;                     // average the last 10 IBI values
+      
+      printf("BPM is gonna get updated!!\n");
       BPM = 60000 / runningTotal;             // how many beats can fit into a minute? that's BPM!
       QS = 1;                              // set Quantified Self flag (we detected a beat)
       //fadeLevel = MAX_FADE_LEVEL;             // If we're fading, re-light that LED.
@@ -310,6 +317,9 @@ void getPulse(int sig_num){
   if (Signal < thresh && Pulse == 1) {  // when the values are going down, the beat is over
     Pulse = 0;                         // reset the Pulse flag so we can do it again
     amp = P - T;                           // get amplitude of the pulse wave
+    printf("Thresh is getting set to amp / 2 + T \n thresh: ");
+    printf("%d", thresh);
+    printf("\n");
     thresh = amp / 2 + T;                  // set thresh at 50% of the amplitude
     P = thresh;                            // reset these for next time
     T = thresh;
@@ -323,6 +333,7 @@ void getPulse(int sig_num){
     firstBeat = 1;                      // set these to avoid noise
     secondBeat = 0;                    // when we get the heartbeat back
     QS = 0;
+    printf("Setting BPM to 0 :((\n");
     BPM = 0;
     IBI = 600;                  // 600ms per beat = 100 Beats Per Minute (BPM)
     Pulse = 0;
