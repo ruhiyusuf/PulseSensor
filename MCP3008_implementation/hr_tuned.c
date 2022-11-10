@@ -39,8 +39,8 @@
 // PULSE SENSOR LEDS
 // #define BLINK_LED 0
 // MCP3004/8 SETTINGS
-// #define BASE 100
-// #define SPI_CHAN 0
+#define BASE 100
+#define SPI_CHAN 0
 
 // FIFO STUFF
 #define PULSE_EXIT 0    // CLEAN UP AND SHUT DOWN
@@ -59,7 +59,7 @@ unsigned int timeOutStart, dataRequestStart, m;
 volatile int Signal;
 volatile unsigned int sampleCounter;
 volatile int threshSetting,lastBeatTime,fadeLevel;
-volatile int thresh = 60; // 550
+volatile int thresh = 550; // 550
 volatile int P = 512;                               // set P default
 volatile int T = 512;                               // set T default
 volatile int firstBeat = 1;                      // set these to avoid noise
@@ -165,10 +165,10 @@ int main(int argc, char *argv[])
 	wiringPiSetup(); //use the wiringPi pin numbers
 
 	//piHiPri(99);
-	// mcp3004Setup(BASE,SPI_CHAN);    // setup the mcp3004 library
+	mcp3004Setup(BASE,SPI_CHAN);    // setup the mcp3004 library
 
 	if (PRINT_FLAG) printf("Setting up ADC...\n");
-	pcf8591Setup(PCF, 0x48);
+//	pcf8591Setup(PCF, 0x48);
 
 	// pinMode(BLINK_LED, OUTPUT); digitalWrite(BLINK_LED,LOW);
 
@@ -230,8 +230,8 @@ void initPulseSensorVariables(void){
     lastBeatTime = 0;
     P = 512;                    // peak at 1/2 the input range of 0..1023
     T = 512;                    // trough at 1/2 the input range.
-    threshSetting = 60; // 550        // used to seed and reset the thresh variable
-    thresh = 1; // 550     // threshold a little above the trough
+    threshSetting = 550; // 550        // used to seed and reset the thresh variable
+    thresh = 550; // 550     // threshold a little above the trough
     amp = 100;                  // beat amplitude 1/10 of input range.
     firstBeat = 1;           // looking for the first beat
     secondBeat = 0;         // not yet looking for the second beat in a row
@@ -247,14 +247,14 @@ void getPulse(int sig_num){
     {
         thisTime = micros();
 	if (PRINT_FLAG) printf("Gonna read some input now!!\n");
-        Signal = analogRead(PCF + 0);
+        //Signal = analogRead(PCF + 0);
 	if (SIGNAL_FLAG) {
 		printf("Signal: ");
 		printf("%d\n", Signal);
 		printf("\n");
 	}
-        // Signal = analogRead(BASE);
-	analogWrite(PCF + 0, Signal);
+        Signal = analogRead(BASE);
+//	analogWrite(PCF + 0, Signal);
         elapsedTime = thisTime - lastTime;
         lastTime = thisTime;
         jitter = elapsedTime - OPT_U;

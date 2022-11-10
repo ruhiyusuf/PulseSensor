@@ -1,14 +1,13 @@
 /*
 
-	THIS CODE IS RELEASED WITHOUT WARRANTY OF FITNESS
-	OR ANY PROMISE THAT IT WORKS, EVEN. WYSIWYG.
+		THIS CODE IS RELEASED WITHOUT WARRANTY OF FITNESS
+		OR ANY PROMISE THAT IT WORKS, EVEN. WYSIWYG.
 
-	YOU SHOULD HAVE RECEIVED A LICENSE FROM THE MAIN
-	BRANCH OF THIS REPO. IF NOT, IT IS USING THE
-	MIT FLAVOR OF LICENSE
+		YOU SHOULD HAVE RECEIVED A LICENSE FROM THE MAIN
+		BRANCH OF THIS REPO. IF NOT, IT IS USING THE
+		MIT FLAVOR OF LICENSE
 
 */
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -21,11 +20,7 @@
 #include <time.h>
 #include <wiringPi.h>
 #include <mcp3004.h>
-#include <pcf8591.h>
 
-#define PCF   120
-#define PRINT_FLAG 0
-#define SIGNAL_FLAG 1
 
 #define OPT_R 10        // min uS allowed lag btw alarm and callback
 #define OPT_U 2000      // sample time uS between alarms
@@ -37,10 +32,10 @@
 
 #define TIME_OUT 30000000    // uS time allowed without callback response
 // PULSE SENSOR LEDS
-// #define BLINK_LED 0
+#define BLINK_LED 0
 // MCP3004/8 SETTINGS
-// #define BASE 100
-// #define SPI_CHAN 0
+#define BASE 100
+#define SPI_CHAN 0
 
 // FIFO STUFF
 #define PULSE_EXIT 0    // CLEAN UP AND SHUT DOWN
@@ -54,12 +49,11 @@ volatile unsigned int eventCounter, thisTime, lastTime, elapsedTime, jitter;
 volatile int sampleFlag = 0;
 volatile int sumJitter, firstTime, secondTime, duration;
 unsigned int timeOutStart, dataRequestStart, m;
-
 // VARIABLES USED TO DETERMINE BPM
 volatile int Signal;
 volatile unsigned int sampleCounter;
 volatile int threshSetting,lastBeatTime,fadeLevel;
-volatile int thresh = 60; // 550
+volatile int thresh = 550;
 volatile int P = 512;                               // set P default
 volatile int T = 512;                               // set T default
 volatile int firstBeat = 1;                      // set these to avoid noise
@@ -70,14 +64,11 @@ volatile int BPM = 0;
 volatile int IBI = 600;                  // 600ms per beat = 100 Beats Per Minute (BPM)
 volatile int Pulse = 0;
 volatile int amp = 100;                  // beat amplitude 1/10 of input range.
-
 // LED CONTROL
 volatile int fadeLevel = 0;
-
 // FILE STUFF
 char filename [100];
 struct tm *timenow;
-
 // FUNCTION PROTOTYPES
 void getPulse(int sig_num);
 void startTimer(int r, unsigned int u);
@@ -89,17 +80,18 @@ FILE *data;
 
 void usage()
 {
-	fprintf (stderr,
-		"\n" \
-		"Usage: sudo ./pulseProto ... [OPTION] ...\n" \
-		"   NO OPTIONS AVAILABLE YET\n"\
-		"\n"\
-		"   Data file saved as\n"\
-		"   /home/pi/Documents/PulseSensor/PULSE_DATA <timestamp>\n"\
-		"   Data format tab separated:\n"\
-		"     sampleCount  Signal  BPM  IBI  Pulse  Jitter\n"\
-		"\n"
-	);
+   fprintf
+   (stderr,
+      "\n" \
+      "Usage: sudo ./pulseProto ... [OPTION] ...\n" \
+      "   NO OPTIONS AVAILABLE YET\n"\
+      "\n"\
+      "   Data file saved as\n"\
+      "   /home/pi/Documents/PulseSensor/PULSE_DATA <timestamp>\n"\
+      "   Data format tab separated:\n"\
+      "     sampleCount  Signal  BPM  IBI  Pulse  Jitter\n"\
+      "\n"
+   );
 }
 
 void sigHandler(int sig_num){
@@ -134,79 +126,77 @@ void fatal(int show_usage, char *fmt, ...)
 // SAVED FOR FUTURE FEATURES
 static int initOpts(int argc, char *argv[])
 {
+   //int i, opt;
+   //while ((opt = getopt(argc, argv, ":")) != -1)
+   //{
+      //i = -1;
+      //switch (opt)
+      //{
+        //case '':
+        //default: /* '?' */
+           //usage();
+        //}
+    //}
    return optind;
 }
 
 
 int main(int argc, char *argv[])
 {
-	signal(SIGINT,sigHandler);
-	//int settings = 0;
-	// command line settings
-	//settings = initOpts(argc, argv);
-	time_t now = time(NULL);
-	timenow = gmtime(&now);
+    signal(SIGINT,sigHandler);
+    //int settings = 0;
+    // command line settings
+    //settings = initOpts(argc, argv);
+    time_t now = time(NULL);
+    timenow = gmtime(&now);
 
-	if (PRINT_FLAG) {
-		printf("Starting file setup...\n");
-		printf("haha sikeee\n");
-	}
-    
-	/*
-	strftime(filename, sizeof(filename),
-	"/home/pi/Documents/pulse-sensor/PULSE_DATA_%Y-%m-%d_%H:%M:%S.dat", timenow);
-	data = fopen(filename, "w+");
-	fprintf(data,"#Running with %d latency at %duS sample rate\n",OPT_R,OPT_U);
-	fprintf(data,"#sampleCount\tSignal\tBPM\tIBI\tjitter\n");
-	printf("Ready to run with %d latency at %duS sample rate\n",OPT_R,OPT_U);
-	*/
+//    strftime(filename, sizeof(filename),
+//    "/home/pi/Documents/PulseSensor/PULSE_DATA_%Y-%m-%d_%H:%M:%S.dat", timenow);
+//   data = fopen(filename, "w+");
+//    fprintf(data,"#Running with %d latency at %duS sample rate\n",OPT_R,OPT_U);
+//    fprintf(data,"#sampleCount\tSignal\tBPM\tIBI\tjitter\n");
 
-	if (PRINT_FLAG) printf("entering wiringPiSetup()\n");
-	wiringPiSetup(); //use the wiringPi pin numbers
+    printf("Ready to run with %d latency at %duS sample rate\n",OPT_R,OPT_U);
 
-	//piHiPri(99);
-	// mcp3004Setup(BASE,SPI_CHAN);    // setup the mcp3004 library
+    wiringPiSetup(); //use the wiringPi pin numbers
+    //piHiPri(99);
+    mcp3004Setup(BASE,SPI_CHAN);    // setup the mcp3004 library
+    // pinMode(BLINK_LED, OUTPUT); digitalWrite(BLINK_LED,LOW);
 
-	if (PRINT_FLAG) printf("Setting up ADC...\n");
-	pcf8591Setup(PCF, 0x48);
+    initPulseSensorVariables();  // initilaize Pulse Sensor beat finder
 
-	// pinMode(BLINK_LED, OUTPUT); digitalWrite(BLINK_LED,LOW);
+    startTimer(OPT_R, OPT_U);   // start sampling
 
-	initPulseSensorVariables();  // initilaize Pulse Sensor beat finder
 
-	if (PRINT_FLAG) printf("entering startTimer\n");
-	startTimer(OPT_R, OPT_U);   // start sampling
+    while(1)
+    {
+        if(sampleFlag){
+            sampleFlag = 0;
+            timeOutStart = micros();
+            digitalWrite(BLINK_LED,Pulse);
+            // PRINT DATA TO TERMINAL
+            printf("%lu\t%d\t%d\t%d\t%d\n",
+            sampleCounter,Signal,BPM,IBI,jitter
+            );
+            // PRINT DATA TO FILE
+//            fprintf(data,"%d\t%d\t%d\t%d\t%d\t%d\n",
+//            sampleCounter,Signal,IBI,BPM,jitter,duration
+//            );
+         }
+         if((micros() - timeOutStart)>TIME_OUT){
+            fatal(0,"0-program timed out",0);
+         }
+    }
 
-	while(1)
-	{
-		if (sampleFlag) {
-			sampleFlag = 0;
-			timeOutStart = micros();
-			// digitalWrite(BLINK_LED,Pulse);
-			// PRINT DATA TO TERMINAL
-			printf("%lu\t%d\t%d\t%d\t%d\n",
-			sampleCounter,Signal,BPM,IBI,jitter
-			);
-			// PRINT DATA TO FILE
-			// fprintf(data,"%d\t%d\t%d\t%d\t%d\t%d\n",
-			// sampleCounter,Signal,IBI,BPM,jitter,duration
-			// );
-		}
+    return 0;
 
-		if ((micros() - timeOutStart)>TIME_OUT) {
-			fatal(0,"0-program timed out",0);
-		}
-	}
-
-	return 0;
-} //int main(int argc, char *argv[])
+}//int main(int argc, char *argv[])
 
 void startTimer(int r, unsigned int u){
     int latency = r;
     unsigned int micros = u;
 
     signal(SIGALRM, getPulse);
-    if (PRINT_FLAG) printf("Exited getPulse()\n");
     int err = ualarm(latency, micros);
     if(err == 0){
         if(micros > 0){
@@ -230,8 +220,8 @@ void initPulseSensorVariables(void){
     lastBeatTime = 0;
     P = 512;                    // peak at 1/2 the input range of 0..1023
     T = 512;                    // trough at 1/2 the input range.
-    threshSetting = 60; // 550        // used to seed and reset the thresh variable
-    thresh = 1; // 550     // threshold a little above the trough
+    threshSetting = 550;        // used to seed and reset the thresh variable
+    thresh = 550;     // threshold a little above the trough
     amp = 100;                  // beat amplitude 1/10 of input range.
     firstBeat = 1;           // looking for the first beat
     secondBeat = 0;         // not yet looking for the second beat in a row
@@ -240,21 +230,13 @@ void initPulseSensorVariables(void){
 }
 
 void getPulse(int sig_num){
-    if (PRINT_FLAG) printf("Entered getPulse()\n");
-    // int analogReadValue;
 
     if(sig_num == SIGALRM)
     {
         thisTime = micros();
-	if (PRINT_FLAG) printf("Gonna read some input now!!\n");
-        Signal = analogRead(PCF + 0);
-	if (SIGNAL_FLAG) {
-		printf("Signal: ");
-		printf("%d\n", Signal);
-		printf("\n");
-	}
-        // Signal = analogRead(BASE);
-	analogWrite(PCF + 0, Signal);
+        Signal = analogRead(BASE);
+				printf("Signal");
+				printf("%d\n", Signal);
         elapsedTime = thisTime - lastTime;
         lastTime = thisTime;
         jitter = elapsedTime - OPT_U;
@@ -262,8 +244,10 @@ void getPulse(int sig_num){
         sampleFlag = 1;
 
 
-    sampleCounter += 2;         // keep track of the time in mS with this variable
-    int N = sampleCounter - lastBeatTime;      // monitor the time since the last beat to avoid noise
+  sampleCounter += 2;         // keep track of the time in mS with this variable
+  int N = sampleCounter - lastBeatTime;      // monitor the time since the last beat to avoid noise
+
+// FADE LED HERE, IF WE COULD FADE...
 
   //  find the peak and trough of the pulse wave
   if (Signal < thresh && N > (IBI / 5) * 3) { // avoid dichrotic noise by waiting 3/5 of last IBI
@@ -279,14 +263,7 @@ void getPulse(int sig_num){
   //  NOW IT'S TIME TO LOOK FOR THE HEART BEAT
   // signal surges up in value every time there is a pulse
   if (N > 250) {                             // avoid high frequency noise
-    if (PRINT_FLAG) {
-			printf("N > 250\nPulse: ");
-			printf("%d", Pulse);
-			if (Signal > thresh) printf("\nSignal > thresh\n");
-			if (N > ((IBI / 5) * 3)) printf("ibi thing is true\n");
-		}
     if ( (Signal > thresh) && (Pulse == 0) && (N > ((IBI / 5) * 3)) ) {
-      if (PRINT_FLAG) printf("this huge condition works!!\n");
       Pulse = 1;                             // set the Pulse flag when we think there is a pulse
       IBI = sampleCounter - lastBeatTime;    // measure time between beats in mS
       lastBeatTime = sampleCounter;          // keep track of time for next pulse
@@ -317,8 +294,6 @@ void getPulse(int sig_num){
       rate[9] = IBI;                          // add the latest IBI to the rate array
       runningTotal += rate[9];                // add the latest IBI to runningTotal
       runningTotal /= 10;                     // average the last 10 IBI values
-      
-      if (PRINT_FLAG) printf("BPM is gonna get updated!!\n");
       BPM = 60000 / runningTotal;             // how many beats can fit into a minute? that's BPM!
       QS = 1;                              // set Quantified Self flag (we detected a beat)
       //fadeLevel = MAX_FADE_LEVEL;             // If we're fading, re-light that LED.
@@ -328,11 +303,6 @@ void getPulse(int sig_num){
   if (Signal < thresh && Pulse == 1) {  // when the values are going down, the beat is over
     Pulse = 0;                         // reset the Pulse flag so we can do it again
     amp = P - T;                           // get amplitude of the pulse wave
-    if (PRINT_FLAG) {
-			printf("Thresh is getting set to amp / 2 + T \n thresh: ");
-			printf("%d", thresh);
-			printf("\n");
-		}
     thresh = amp / 2 + T;                  // set thresh at 50% of the amplitude
     P = thresh;                            // reset these for next time
     T = thresh;
@@ -346,7 +316,6 @@ void getPulse(int sig_num){
     firstBeat = 1;                      // set these to avoid noise
     secondBeat = 0;                    // when we get the heartbeat back
     QS = 0;
-    if (PRINT_FLAG) printf("Setting BPM to 0 :((\n");
     BPM = 0;
     IBI = 600;                  // 600ms per beat = 100 Beats Per Minute (BPM)
     Pulse = 0;
@@ -355,7 +324,6 @@ void getPulse(int sig_num){
   }
 
     duration = micros()-thisTime;
-    if (PRINT_FLAG) printf("Just finished calculating the duration!!\n");
 
     }
 
