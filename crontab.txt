@@ -1,0 +1,1 @@
+@reboot sleep 20 && /usr/bin/python /bin/server.py &
