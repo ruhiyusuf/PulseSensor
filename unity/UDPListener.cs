@@ -21,7 +21,9 @@ public class UDPListener : MonoBehaviour
     public static List<double> heartRateList = new List<double>();
     public static int IBI = 0;
     public static List<int> IBIList = new List<int>();
-    public static double sigmoidBPM = 0;
+    public static double sigmoidBPM = 0.0;
+    public static double prevSigmoidBPM = 0.0;
+    public static double deltaSigmoidBPM = 0.0;
     public static List<double> sigmoidBPMList = new List<double>();
     System.String udpReceiveString = "";
     string[] udpReceiveArr;
@@ -77,6 +79,7 @@ public class UDPListener : MonoBehaviour
             else if (heartRate < 40) sigmoidBPM = 40;
             else sigmoidBPM = (1 / -0.75) * Math.Log(60 / heartRate);
             sigmoidBPMList.Add(sigmoidBPM);
+            deltaSigmoidBPM = Math.Abs(sigmoidBPM - prevSigmoidBPM);
 
         }
         // heartRate = Convert.ToDouble(udpReceiveString);
